@@ -16,8 +16,6 @@ from forms import *
 from datetime import datetime
 import sys
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -41,7 +39,7 @@ class Venue(db.Model):
     __tablename__ = 'venues'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String())
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
@@ -60,7 +58,7 @@ class Artist(db.Model):
     __tablename__ = 'artists'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String())
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
@@ -205,28 +203,23 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  error = False
- 
-  try:
-    name = request.form['name']
-    state = request.form['state']
-    city = request.form['city']
-    address = request.form['address']
-    phone = request.form['phone']
-    tmp_genres = request.form.getlist('genres')
-    genres = ','.join(tmp_genres)
-    facebook_link = request.form['facebook_link']
-    venue = Venue(name=name, state=state, city=city, address=address, phone=phone, facebook_link=facebook_link, genres=genres)
-    db.session.add(venue)
-    db.session.commit()
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  except:
-    error=True 
-    #db.session.rollback()
-    flash('Opps, that didnt work', 'error')
-  finally:
-    db.session.close()
-    return render_template('pages/home.html')
+  #error = False
+  app.logger.error('hello world error 1')
+  name = request.form['name']
+  state = request.form['state']
+  city = request.form['city']
+  address = request.form['address']
+  phone = request.form['phone']
+  app.logger.error(f'{name}, {state}, {city}, {address}, {phone}')
+  #tmp_genres = request.form.getlist('genres')
+  #genres = ','.join(tmp_genres)
+  #facebook_link = request.form['facebook_link']
+  venue = Venue(name=name, state=state, city=city, address=address, phone=phone, genres=genres)
+  db.session.add(venue)
+  db.session.commit()
+  flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  db.session.close()
+  return render_template('pages/home.html')
     
 
   
