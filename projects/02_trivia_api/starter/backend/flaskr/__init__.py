@@ -13,8 +13,7 @@ def create_app(test_config=None):
   app = Flask(__name__)
   setup_db(app)
 
-  #cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-  CORS(app)
+  cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
   
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
@@ -39,7 +38,7 @@ def create_app(test_config=None):
   @app.route('/categories')
   @cross_origin()
   def get_categories():
-    return jsonify({'categories': ['Science', 'Art']})
+    return jsonify({'categories': [{'id':1, 'category':'Science'}]})
 
 
   '''
@@ -61,7 +60,7 @@ def create_app(test_config=None):
     return jsonify({'questions': 'test',
                     'total_questions': 3,
                     'current_category': 'Science',
-                    'categories':['Science', 'Art']})
+                    'categories':[{'id':1, 'category':'Science'}]})
 
   '''
   @TODO: 
