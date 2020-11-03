@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import random
 
 from models import setup_db, Question, Category
@@ -38,7 +38,10 @@ def create_app(test_config=None):
   @app.route('/categories')
   @cross_origin()
   def get_categories():
-    return jsonify({'categories': [{'id':1, 'category':'Science'}]})
+    categories = []
+    category = 1
+    categories.append(category)
+    return jsonify({'categories': categories})
 
 
   '''
@@ -55,12 +58,18 @@ def create_app(test_config=None):
   '''
 
   @app.route('/questions')
-  @cross_origin
+  @cross_origin()
   def get_questions():
-    return jsonify({'questions': 'test',
+    questions = []
+    question = {'id': 1, 'question': 'test question', 'answer':'test answer', 'category': 1, 'difficulty':1 }
+    questions.append(question)
+    categories = []
+    category = 1
+    categories.append(category)
+    return jsonify({'questions': questions,
                     'total_questions': 3,
                     'current_category': 'Science',
-                    'categories':[{'id':1, 'category':'Science'}]})
+                    'categories': categories})
 
   '''
   @TODO: 
