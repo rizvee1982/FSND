@@ -38,10 +38,11 @@ def create_app(test_config=None):
   @app.route('/categories')
   @cross_origin()
   def get_categories():
-    categories = []
-    category = 1
-    categories.append(category)
-    return jsonify({'categories': categories})
+    categories = Category.query.all()
+    categoryArray = []
+    for category in categories:
+      categoryArray.append(category.format())
+  return jsonify({'categories': categoryArray})
 
 
   '''
