@@ -45,6 +45,7 @@ def create_app(test_config=None):
     categoryArray = []
     for category in categories:
       categoryArray.append(category.type)
+    print(jsonify({'categories': categoryArray, 'success': True}))
     return jsonify({'categories': categoryArray, 'success': True})
       
 
@@ -83,6 +84,11 @@ def create_app(test_config=None):
     if int(page) > math.ceil(len(questions)/QUESTIONS_PER_PAGE):
       abort(404)
     current_questions = get_page_questions(int(page), questions)
+    print(jsonify({'questions': current_questions,
+                  'total_questions': len(questions),
+                  'categories': categoryArray,
+                  'current_category': categoryArray[0],
+                  'success': True }))
     return jsonify({'questions': current_questions,
                   'total_questions': len(questions),
                   'categories': categoryArray,
@@ -102,6 +108,8 @@ def create_app(test_config=None):
   @cross_origin()
   def delete_questions(question_id):
     question = Question.query.get(question_id)
+    print(question_id)
+    print(question)
     if question is None:
       abort(404)
     else:

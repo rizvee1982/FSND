@@ -90,6 +90,130 @@ GET '/categories'
 '5' : "Entertainment",
 '6' : "Sports"}
 
+GET '/questions'
+- Fetches questions on a particular page
+- Request Arguments: 'page' specifies the page number and is an integer
+- Returns: Questions to be displayed on the selected page, total number of questions & catergories
+{
+  "categories": [
+    "Science", 
+    "Art", 
+    "Geography", 
+    "History", 
+    "Entertainment", 
+    "Sports"
+  ], 
+  "current_category": "Science", 
+  "questions": [
+    {
+      "answer": "The Liver", 
+      "category": 0, 
+      "difficulty": 4, 
+      "id": 20, 
+      "question": "What is the heaviest organ in the human body?"
+    }, 
+    {
+      "answer": "Alexander Fleming", 
+      "category": 0, 
+      "difficulty": 3, 
+      "id": 21, 
+      "question": "Who discovered penicillin?"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 18
+}
+
+GET '/categories/<cat_id>/questions'
+- Fetches questions for given <cat_id>
+- Request Arguements: <cat_id> is the category ID of type int
+- Returns: Questions that match the provided cat_id
+{
+  "current_category": 1, 
+  "questions": [
+    {
+      "answer": "Escher", 
+      "category": 1, 
+      "difficulty": 1, 
+      "id": 16, 
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    }, 
+    {
+      "answer": "One", 
+      "category": 1, 
+      "difficulty": 4, 
+      "id": 18, 
+      "question": "How many paintings did Van Gogh sell in his lifetime?"
+    }, 
+    {
+      "answer": "Jackson Pollock", 
+      "category": 1, 
+      "difficulty": 2, 
+      "id": 19, 
+      "question": "Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 3
+}
+
+
+POST '/questions'
+- Creates question based on the provided parameters
+- Request Arguements: Question, answer, category & difficulty 
+{'question': 'What is a test question?',
+'answer' : 'test answer',
+'category': 1,
+'difficulty': 1}
+- Returns: Success attribute to indicate if the creation was success or not
+{'success':True}
+
+POST '/questions/search'
+- Returns questions that match the search term provided
+- Request Arguements: Search term 
+{"searchTerm": "test"}
+- Returns: Questions that match the search term
+{
+  "current_category": 0, 
+  "questions": [
+    {
+      "answer": "test", 
+      "category": 0, 
+      "difficulty": 1, 
+      "id": 24, 
+      "question": "test"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 1
+}
+
+
+POST '/quizzes'
+- Returns one question from the selected category and that is not in the list of previous questions provided
+- Request Arguments: Category and list of previous questions 
+{"quiz_category": {"id":1, "type": "Science"}, "previous_questions":[1, 2]}
+- Return: Question that meets the criteria
+{
+  "question": {
+    "answer": "One", 
+    "category": 1, 
+    "difficulty": 4, 
+    "id": 18, 
+    "question": "How many paintings did Van Gogh sell in his lifetime?"
+  }, 
+  "success": true
+}
+
+
+DELETE '/questions/<quesiton_ID>'
+- Deletes specified <question_ID>
+- Require Arguments: Question_ID
+- Returns: Status of the delete request
+{'success':True}
+
+
+
 ```
 
 

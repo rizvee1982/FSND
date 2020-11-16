@@ -69,11 +69,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res_json['error'], 400)
         self.assertEqual(res_json['success'], False)
 
-    # def test_delete_question(self):
-    #     res = self.client().delete('/questions/3')
-    #     res_json = json.loads(res.data)
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(res_json['success'], True)
+    def test_delete_question(self):
+        res = self.client().delete('/questions/20')
+        res_json = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res_json['success'], True)
 
     def test_delete_question_beyond_range(self):
         res = self.client().delete('/questions/2000')
@@ -126,11 +126,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res_json['success'], False)
 
     def test_viewQuiz(self):
-        res = self.client().post('/quizzes', json={'quiz_category': {'id': 1, 'type': 'Science'}, 'previous_questions': [1, 2]})
+        res = self.client().post('/quizzes', json={'quiz_category': {'id': 0, 'type': 'Science'}, 'previous_questions': [1, 2]})
         res_json = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res_json['success'], True)
-        self.assertEqual(res_json['question']['category'], 1)
+        self.assertEqual(res_json['question']['category'], 0)
 
     def test_404_viewQuiz(self):
         res = self.client().post('/quizzes', json={'quiz_category': {'id': 400, 'type': 'Science'}, 'previous_questions': [1, 2]})
