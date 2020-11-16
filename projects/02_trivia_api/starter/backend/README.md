@@ -72,9 +72,12 @@ This README is missing documentation of your endpoints. Below is an example for 
 
 Endpoints
 GET '/categories'
-GET ...
-POST ...
-DELETE ...
+GET '/questions'
+GET '/categories/<cat_id>/questions'
+POST '/questions'
+POST '/questions/search'
+POST '/quizzes'
+DELETE '/questions'
 
 GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
