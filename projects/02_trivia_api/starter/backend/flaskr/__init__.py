@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
 import random
 import sys
+import math
 
 
 from models import setup_db, Question, Category
@@ -40,15 +41,12 @@ def create_app(test_config=None):
   @app.route('/categories')
   @cross_origin()
   def get_categories():
-    try:
-      categories = Category.query.all()
-      categoryArray = []
-      for category in categories:
-        categoryArray.append(category.type)
-    except Exception as e:
-      abort(422)
-    finally:
-      return jsonify({'categories': categoryArray, 'success': True})
+    categories = Category.query.all()
+    categoryArray = []
+    for category in categories:
+      categoryArray.append(category.type)
+    return jsonify({'categories': categoryArray, 'success': True})
+      
 
 
   '''
@@ -73,29 +71,27 @@ def create_app(test_config=None):
   @app.route('/questions')
   @cross_origin()
   def get_questions():
-    try:
-      categories = Category.query.all()
-      categoryArray = []
-      for category in categories:
-        categoryArray.append(category.type)
-        page = int(request.args.get('page'))
-        questions = Question.query.all()
-        current_questions = get_page_questions(page, questions)
-      pass
-    except Exception as e:
-      abort(422)
-    finally:
-      return jsonify({'questions': current_questions,
-                    'total_questions': len(questions),
-                    'categories': categoryArray,
-                    'current_category': categoryArray[0] })
-
-    
+    page = request.args.get('page')
+    if page is None:
+      abort(400)
+    categories = Category.query.all()
+    current_questions = []
+    categoryArray = []
+    for category in categories:
+      categoryArray.append(category.type)
+    questions = Question.query.all()
+    if int(page) > math.ceil(len(questions)/QUESTIONS_PER_PAGE):
+      abort(404)
+    current_questions = get_page_questions(int(page), questions)
+    return jsonify({'questions': current_questions,
+                  'total_questions': len(questions),
+                  'categories': categoryArray,
+                  'current_category': categoryArray[0],
+                  'success': True })
 
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
-
 
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page. 
@@ -105,14 +101,13 @@ def create_app(test_config=None):
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
   @cross_origin()
   def delete_questions(question_id):
-    try:
-      question = Question.query.get(question_id)
+    question = Question.query.get(question_id)
+    if question is None:
+      abort(404)
+    else:
       question.delete()
-      success = True 
-    except Exception as e:
-      success = False
-    finally:
-      return jsonify({'success': success}) 
+      return jsonify({'success': True})
+
 
 
   '''
@@ -139,15 +134,11 @@ def create_app(test_config=None):
       question_text = request_json.get('question', '')
       answer = request_json.get('answer', '')
       question = Question(question=question_text, answer=answer, category=category, difficulty = difficulty)
-      print(difficulty)
-      print(question)
-      question.insert()
-      success = True
+      result = question.insert()
+      return jsonify({'success':True})
     except Exception as e:
-      success = False
       abort(422)
-    finally:
-      return jsonify({'success':success})
+      
 
   '''
   @TODO: 
@@ -193,7 +184,6 @@ def create_app(test_config=None):
       questions = Question.query.filter(Question.category == category_id)
       questionArray = []
       questionArray = [question.format() for question in questions]
-      print(questionArray)
       success = True 
       return jsonify({'questions' : questionArray,
                       'total_questions' : len(questionArray),
@@ -216,24 +206,24 @@ def create_app(test_config=None):
   @app.route('/quizzes', methods=['POST'])
   @cross_origin()
   def viewQuiz():
-    try:
-      request_json = request.get_json()
-      previous_questions = request_json.get('previous_questions')
-      quiz_category = request_json.get('quiz_category')
+    request_json = request.get_json()
+    previous_questions = request_json.get('previous_questions','')
+    quiz_category = request_json.get('quiz_category','')
 
-      if quiz_category['type'] == 'click':
-        questions = Question.query.filter(~Question.id.in_(previous_questions)).all()
-      else:
-        questions = Question.query.filter(Question.category == int(quiz_category['id'])).filter(~Question.id.in_(previous_questions)).all()
+    if quiz_category['type'] == 'click':
+      questions = Question.query.filter(~Question.id.in_(previous_questions)).all()
+    elif Question.query.filter(Question.category==quiz_category['id']).count() == 0:
+      abort(404)
+    else:
+      questions = Question.query.filter(Question.category == int(quiz_category['id'])).filter(~Question.id.in_(previous_questions)).all()
 
-      if len(questions)==0:
-        return jsonify({'success' : True})
-      else:
-        question = random.choice(questions)
-        return jsonify({'question' : question.format(),
-                        'success' : True})
-    except Exception as e:
-      return jsonify({'success' : False})
+    if len(questions)==0:
+      return jsonify({'success' : True})
+    else:
+      question = random.choice(questions)
+      return jsonify({'question' : question.format(),
+                      'success' : True})
+
 
   '''
   @TODO: 
@@ -264,6 +254,22 @@ def create_app(test_config=None):
       "error": 400,
       "message": "bad request"
       }), 400
+
+  @app.errorhandler(405)
+  def bad_request(error):
+    return jsonify({
+      "success": False, 
+      "error": 405,
+      "message": "method not allowed"
+      }), 405
+  
+  @app.errorhandler(500)
+  def bad_request(error):
+    return jsonify({
+      "success": False, 
+      "error": 500,
+      "message": "server error"
+      }), 500
   
   return app
 
