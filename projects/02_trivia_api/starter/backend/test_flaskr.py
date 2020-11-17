@@ -84,10 +84,11 @@ class TriviaTestCase(unittest.TestCase):
     def test_create_question(self):
         res = self.client().post('/questions', json=self.new_question)
         res_json = json.loads(res.data)
-        question = Question.query.filter(Question.question == self.new_question['question'], 
-                                        Question.answer == self.new_question['answer'],
-                                        Question.category == self.new_question['category'],
-                                        Question.difficulty == self.new_question['difficulty'])
+        question = Question.query.filter(
+            Question.question == self.new_question['question'], 
+            Question.answer == self.new_question['answer'],
+            Question.category == self.new_question['category'],
+            Question.difficulty == self.new_question['difficulty'])
         self.assertTrue(question)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res_json['success'], True)
@@ -126,7 +127,12 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res_json['success'], False)
 
     def test_viewQuiz(self):
-        res = self.client().post('/quizzes', json={'quiz_category': {'id': 0, 'type': 'Science'}, 'previous_questions': [1, 2]})
+        res = self.client().post(
+            '/quizzes', 
+            json={
+                'quiz_category': {'id': 0, 'type': 'Science'}, 
+                'previous_questions': [1, 2]
+            })
         res_json = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res_json['success'], True)

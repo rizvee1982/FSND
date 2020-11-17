@@ -39,7 +39,6 @@ def create_app(test_config=None):
   for all available categories.
   '''
   @app.route('/categories')
-  @cross_origin()
   def get_categories():
     categories = Category.query.all()
     categoryArray = []
@@ -70,7 +69,6 @@ def create_app(test_config=None):
     return questions[start:end]
 
   @app.route('/questions')
-  @cross_origin()
   def get_questions():
     page = request.args.get('page')
     if page is None:
@@ -105,7 +103,6 @@ def create_app(test_config=None):
   Testing: Done 
   '''
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
-  @cross_origin()
   def delete_questions(question_id):
     question = Question.query.get(question_id)
     print(question_id)
@@ -133,19 +130,24 @@ def create_app(test_config=None):
   '''
 
   @app.route('/questions', methods=['POST'])
-  @cross_origin()
   def create_question():
     try:
       request_json = request.get_json()
-      category = request_json.get('category', '')
-      difficulty = request_json.get('difficulty', '')
-      question_text = request_json.get('question', '')
-      answer = request_json.get('answer', '')
+      #Validation added to check if category & difficulty are int. 
+      #If not, except block will catch exception and then abort
+      category = int(request_json.get('category'))
+      difficulty = int(request_json.get('difficulty'))
+      question_text = request_json.get('question')
+      answer = request_json.get('answer')
+      #If either question or answer are empty, then abort 
+      if question_text == '' or answer == '':
+        abort(422)
       question = Question(question=question_text, answer=answer, category=category, difficulty = difficulty)
       result = question.insert()
       return jsonify({'success':True})
-    except Exception as e:
+    except:
       abort(422)
+
       
 
   '''
@@ -162,7 +164,6 @@ def create_app(test_config=None):
   '''
 
   @app.route('/questions/search', methods=['POST'])
-  @cross_origin()
   def search_questions():
     request_json = request.get_json()
     searchTerm = request_json.get('searchTerm','')
@@ -184,7 +185,6 @@ def create_app(test_config=None):
   category to be shown. 
   '''
   @app.route('/categories/<int:category_id>/questions')
-  @cross_origin()
   def get_category_questions(category_id):
     if Category.query.get(category_id) is None:
       abort(404)
@@ -212,7 +212,6 @@ def create_app(test_config=None):
   '''
 
   @app.route('/quizzes', methods=['POST'])
-  @cross_origin()
   def viewQuiz():
     request_json = request.get_json()
     previous_questions = request_json.get('previous_questions','')
@@ -223,13 +222,13 @@ def create_app(test_config=None):
     elif Question.query.filter(Question.category==quiz_category['id']).count() == 0:
       abort(404)
     else:
-      questions = Question.query.filter(Question.category == int(quiz_category['id'])).filter(~Question.id.in_(previous_questions)).all()
+      questions = Question.query.filter(Question.category == int(quiz_category['id'])) \
+                                .filter(~Question.id.in_(previous_questions)).all()
 
     if len(questions)==0:
       return jsonify({'success' : True})
     else:
-      question = random.choice(questions)
-      return jsonify({'question' : question.format(),
+      return jsonify({'question' : random.choice(questions).format(),
                       'success' : True})
 
 
