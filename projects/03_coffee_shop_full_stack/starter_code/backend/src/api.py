@@ -14,134 +14,13 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-'''
-class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
-'''
-
-
-def get_token_auth_header():
-    """Obtains the Access Token from the Authorization Header
-    """
-    auth = request.headers.get('Authorization', None)
-    if not auth:
-        raise AuthError({
-            'code': 'authorization_header_missing',
-            'description': 'Authorization header is expected.'
-        }, 401)
-
-    parts = auth.split()
-    if parts[0].lower() != 'bearer':
-        raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Authorization header must start with "Bearer".'
-        }, 401)
-
-    elif len(parts) == 1:
-        raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Token not found.'
-        }, 401)
-
-    elif len(parts) > 2:
-        raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Authorization header must be bearer token.'
-        }, 401)
-
-    token = parts[1]
-    return token
-
-
-def verify_decode_jwt(token):
-    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
-    jwks = json.loads(jsonurl.read())
-    unverified_header = jwt.get_unverified_header(token)
-    rsa_key = {}
-    if 'kid' not in unverified_header:
-        raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Authorization malformed.'
-        }, 401)
-
-    for key in jwks['keys']:
-        if key['kid'] == unverified_header['kid']:
-            rsa_key = {
-                'kty': key['kty'],
-                'kid': key['kid'],
-                'use': key['use'],
-                'n': key['n'],
-                'e': key['e']
-            }
-    if rsa_key:
-        try:
-            payload = jwt.decode(
-                token,
-                rsa_key,
-                algorithms=ALGORITHMS,
-                audience=API_AUDIENCE,
-                issuer='https://' + AUTH0_DOMAIN + '/'
-            )
-
-            return payload
-
-        except jwt.ExpiredSignatureError:
-            raise AuthError({
-                'code': 'token_expired',
-                'description': 'Token expired.'
-            }, 401)
-
-        except jwt.JWTClaimsError:
-            raise AuthError({
-                'code': 'invalid_claims',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
-            }, 401)
-        except Exception:
-            raise AuthError({
-                'code': 'invalid_header',
-                'description': 'Unable to parse authentication token.'
-            }, 400)
-    raise AuthError({
-                'code': 'invalid_header',
-                'description': 'Unable to find the appropriate key.'
-            }, 400)
-
-def check_permissions(permission, payload):
-    if 'permissions' not in payload:
-        abort(400)
-
-    if permission not in payload['permissions']:
-        abort(403)
-
-    return True
-
-'''
-def requires_auth(permission=''):
-    def requires_auth_access(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            token = get_token_auth_header()
-            try:
-                payload = verify_decode_jwt(token)
-            except:
-                abort(401)
-
-            check_permissions(permission, payload)
-
-            return f(payload, *args, **kwargs)
-        return wrapper
-    return requires_auth_access
-'''
-
 
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-db_drop_and_create_all()
+#db_drop_and_create_all()
 
 ## ROUTES
 
@@ -178,8 +57,8 @@ def get_drinks():
 
 
 @app.route('/drinks-detail')
-@requires_auth('get:drinks-details')
-def get_drinks_details():
+@requires_auth('get:drinks-detail')
+def get_drinks_details(payload):
     try: 
         drinks = Drink.query.all()
         drink_list = []
@@ -201,8 +80,18 @@ def get_drinks_details():
 
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def create_drinks():
-    request_json = request.get_json()
+def create_drinks(payload):
+    try:
+        request_json = request.get_json()
+        title = request_json.get('title')
+        recipe = json.dumps(request_json.get('recipe'))
+        drink = Drink(title=title, recipe = recipe)
+        drinkArr = []
+        drinkArr.append(drink.long())
+        drink.insert() 
+        return jsonify({'success': True, 'drinks': drinkArr}), 200
+    except:
+        abort(422)
 
 
 '''
@@ -217,6 +106,21 @@ def create_drinks():
         or appropriate status code indicating reason for failure
 '''
 
+@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def update_drink(payload, drink_id):
+    if drink_id is None: 
+        abort(404)
+    drink = Drink.query.get(drink_id)
+    if drink is None:
+        abort(404)
+    request_json = request.get_json()
+    drink.title = request.json.get('title')
+    drink.recipe = json.dumps(request_json.get('recipe'))
+    drink.update()
+    drinks = []
+    drinks.append(drink.long())
+    return jsonify({'success': True, 'drinks': drinks}), 200
 
 '''
 @TODO implement endpoint
@@ -229,17 +133,19 @@ def create_drinks():
         or appropriate status code indicating reason for failure
 '''
 
-'''
-
-SAMPLE CODE 
-
-@app.route('/images')
-@requires_auth('read:images')
-def images(jwt):
-    print(jwt)
-    return 'Not implemented'
-
-'''
+@app.route('/drinks/<int:drink_id>', methods = ['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drink(payload, drink_id):
+    try:
+        if drink_id is None: 
+            abort(404)
+        drink = Drink.query.get(drink_id)
+        if drink is None:
+            abort(404)
+        drink.delete()
+        return jsonify({'success': True, "delete":drink_id}), 200
+    except:
+        abort(422)
 
 ## Error Handling
 '''
@@ -269,6 +175,21 @@ def unprocessable(error):
     error handler should conform to general task above 
 '''
 
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+                    "success": False, 
+                    "error": 404,
+                    "message": "Resource not found."
+                    }), 404
+
+
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
 
 '''
 @TODO implement error handler for AuthError
