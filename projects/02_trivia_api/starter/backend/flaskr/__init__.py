@@ -111,9 +111,7 @@ def create_app(test_config=None):
       abort(404)
     else:
       question.delete()
-      return jsonify({'success': True})
-
-
+      return jsonify({'success': True}), 200
 
   '''
   @TODO: 
