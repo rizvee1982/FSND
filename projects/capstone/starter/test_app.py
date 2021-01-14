@@ -26,7 +26,7 @@ class CastingagencyTestCase(unittest.TestCase):
 	movie_patch = {'title': 'What belongs to you'}
 
 	new_movie_err_type = {'title': 'Shawshank Redemption',
-					'release_date': '2 0 O eight'}
+					'release_date': 'xxxxxx'}
 
 
 	def setUp(self):
@@ -54,7 +54,6 @@ class CastingagencyTestCase(unittest.TestCase):
 	"""
 	def test_get_actors(self):
 		res = self.client().get('/actors', headers={"authorization": f"bearer {auth_token}"})
-		print(res)
 		res_json = json.loads(res.data)
 		self.assertTrue(res_json['success'])
 		self.assertTrue(res_json['actors'])
@@ -131,13 +130,13 @@ class CastingagencyTestCase(unittest.TestCase):
 		self.assertEqual(res_json['success'], False)
 
 	def test_patch_actor(self):
-		res = self.client().patch('/actors/5', json=self.actor_patch, headers={"authorization": f"bearer {auth_token}"})
+		res = self.client().patch('/actors/7', json=self.actor_patch, headers={"authorization": f"bearer {auth_token}"})
 		res_json = json.loads(res.data)
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual(res_json['success'], True)
 
 	def test_patch_actor_err(self):
-		res = self.client().patch('/actors/5', json=self.new_actor_err_type, headers={"authorization": f"bearer {auth_token}"})
+		res = self.client().patch('/actors/7', json=self.new_actor_err_type, headers={"authorization": f"bearer {auth_token}"})
 		res_json = json.loads(res.data)
 		self.assertEqual(res.status_code, 422)
 		self.assertEqual(res_json['success'], False)
@@ -149,7 +148,7 @@ class CastingagencyTestCase(unittest.TestCase):
 		self.assertEqual(res_json['success'], True)
 
 	def test_patch_movie_err(self):
-		res = self.client().patch('/movies/11', json=self.new_movie_err_type, headers={"authorization": f"bearer {auth_token}"})
+		res = self.client().patch('/movies/8', json=self.new_movie_err_type, headers={"authorization": f"bearer {auth_token}"})
 		res_json = json.loads(res.data)
 		self.assertEqual(res.status_code, 422)
 		self.assertEqual(res_json['success'], False)

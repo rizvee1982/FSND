@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import setup_db, Movie, Actor
 from auth import AuthError, requires_auth
-
+from sqlalchemy.exc import DataError
 
 def create_app(test_config=None):
   # create and configure the app
@@ -22,7 +22,6 @@ def create_app(test_config=None):
 	            movie_list.append(movie.format())
 	        return jsonify({'success': True, "movies": movie_list}), 200
 	    except:
-	    	print("Unexpected error:", sys.exc_info()[0])
 	    	abort(422)
 
 	@app.route('/actors')
@@ -35,7 +34,6 @@ def create_app(test_config=None):
 	            actor_list.append(actor.format())
 	        return jsonify({'success': True, "actors": actor_list}), 200
 	    except:
-	    	print("Unexpected error:", sys.exc_info()[0])
 	    	abort(422)
 
 	@app.route('/movies/<int:movie_id>', methods=['DELETE'])
@@ -72,38 +70,49 @@ def create_app(test_config=None):
 			actor = Actor(name=name, gender=gender, age=age)
 			actor.insert()
 			return jsonify({'success': True, 'actor': actor.format()}), 200
-		except:
+		except DataError:
 			abort(422)
 
 
 	@app.route('/movies', methods=['POST'])
 	@requires_auth('post:movies')
 	def create_movie(payload):
-		request_json = request.get_json()
-		title = request_json.get('title')
-		release_date = request_json.get('release_date')
-		if None in (title, release_date):
-			abort(400)
-		movie = Movie(title=title, release_date=release_date)
-		movie.insert()
-		return jsonify({'success': True, 'movie': movie.format()}), 200
+		try: 
+			request_json = request.get_json()
+			title = request_json.get('title')
+			release_date = request_json.get('release_date')
+			if None in (title, release_date):
+				abort(400)
+			movie = Movie(title=title, release_date=release_date)
+			movie.insert()
+			return jsonify({'success': True, 'movie': movie.format()}), 200
+		except DataError:
+			abort(422)
 
 
 	@app.route('/movies/<int:movie_id>', methods=['PATCH'])
 	@requires_auth('patch:movies')
 	def update_movie(payload, movie_id):
-		request_json = request.get_json()
-		movie = Movie.query.get(movie_id)
-		if movie is None:
-			abort(404)
-		title = request_json.get('title')
-		release_date = request_json.get('release_date')
-		if None in (title, release_date):
-			abort(400)
-		movie.title = title
-		movie.release_date = release_date
-		movie.update()
-		return jsonify({'success': True, 'movie': movie.format()}), 200
+		try:
+			request_json = request.get_json()
+			movie = Movie.query.get(movie_id)
+			if movie is None:
+				abort(404)
+			
+			# If there are attributes sent that are not related to the resource
+			if not set(request_json.keys()).issubset(['title', 'release_date']):
+				abort(400)
+
+			if request_json.get('title') is not None:
+				movie.title = request_json.get('title')
+
+			if request_json.get('release_date') is not None:
+				movie.release_date = request_json.get('release_date')
+
+			movie.update()
+			return jsonify({'success': True, 'movie': movie.format()}), 200
+		except DataError as e:
+			abort(422)
 
 
 	@app.route('/actors/<int:actor_id>', methods=['PATCH'])
@@ -115,11 +124,10 @@ def create_app(test_config=None):
 			# If the actor id does not have a corresponding resource  
 			if actor is None:
 				abort(404)
-			
 			# If there are attributes sent that are not related to the resource
 			if not set(request_json.keys()).issubset(['name', 'gender', 'age']):
 				abort(400)
-
+			
 			if request_json.get('name') is not None:
 				actor.name = request_json.get('name')
 
@@ -130,8 +138,9 @@ def create_app(test_config=None):
 				actor.gender = request_json.get('gender')
 			actor.update()
 			return jsonify({'success': True, 'movie': actor.format()}), 200
-		except:
+		except DataError:
 			abort(422)
+
 
 	@app.errorhandler(422)
 	def unprocessable(error):

@@ -86,7 +86,7 @@ ALTER TABLE public.movieactors OWNER TO adnan;
 CREATE TABLE public.movies (
     id integer NOT NULL,
     title character varying,
-    release_date character varying
+    release_date timestamp without time zone
 );
 
 
@@ -133,11 +133,11 @@ ALTER TABLE ONLY public.movies ALTER COLUMN id SET DEFAULT nextval('public.movie
 --
 
 COPY public.actors (id, age, gender, name) FROM stdin;
+1	31	male	Tim Lo
 3	31	male	Tim Lo
 4	31	male	Tim Lo
-5	31	male	Tim Lo
 6	31	male	Tim Lo
-7	31	male	Tim Lo
+2	32	male	Troye Sivan
 \.
 
 
@@ -146,7 +146,7 @@ COPY public.actors (id, age, gender, name) FROM stdin;
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-d03a8e648932
+45fddb99c91c
 \.
 
 
@@ -163,10 +163,13 @@ COPY public.movieactors (movie_id, actor_id) FROM stdin;
 --
 
 COPY public.movies (id, title, release_date) FROM stdin;
-2	Schitt's creek	2018-04-23
-3	Schitt's creek	2018-04-23
-4	Schitt's creek	2018-04-23
-5	Schitt's creek	2018-04-23
+2	Schitt's creek	2018-04-23 00:00:00
+3	Schitt's creek	2018-04-23 00:00:00
+4	Schitt's creek	2018-04-23 00:00:00
+5	Schitt's creek	2018-04-23 00:00:00
+6	Schitt's creek	2018-04-23 00:00:00
+1	Rosebud Motel	2018-04-23 00:00:00
+7	Schitt's creek	2018-04-23 00:00:00
 \.
 
 
@@ -174,14 +177,14 @@ COPY public.movies (id, title, release_date) FROM stdin;
 -- Name: actors_id_seq; Type: SEQUENCE SET; Schema: public; Owner: adnan
 --
 
-SELECT pg_catalog.setval('public.actors_id_seq', 7, true);
+SELECT pg_catalog.setval('public.actors_id_seq', 6, true);
 
 
 --
 -- Name: movies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: adnan
 --
 
-SELECT pg_catalog.setval('public.movies_id_seq', 5, true);
+SELECT pg_catalog.setval('public.movies_id_seq', 7, true);
 
 
 --
