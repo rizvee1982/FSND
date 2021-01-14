@@ -30,6 +30,7 @@ def setup_db(app, database_path=database_path):
   app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
   db.app = app
   db.init_app(app)
+  from models import setup_db, Movie, Actor
   db.create_all()
 
 '''
@@ -41,7 +42,7 @@ class Movie(db.Model):
 
   id = Column(Integer, primary_key=True)
   title = Column(String)
-  release_date = Column(String)
+  release_date = Column(DateTime)
   actors = db.relationship("Actor",
               secondary=movie_actors,
               back_populates="movies")

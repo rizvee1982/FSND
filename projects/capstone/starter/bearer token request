@@ -1,0 +1,7 @@
+curl --request POST \
+  --url 'https://dev-udipewqr.us.auth0.com/oauth/token' \
+  --header 'content-type: application/x-www-form-urlencoded' \
+  --data grant_type=client_credentials \
+  --data client_id=OzTHNdpz2OtVb2eASxZGgEPUyU9aNtw9 \
+  --data client_secret=Hy5Vho2N0f_eBDZycy_H8qhsL-5wSNzLaTVHGZ9n9OKZ10OAEOUhA5qAU1aRABZx \
+  --data audience=castingagencyapi
